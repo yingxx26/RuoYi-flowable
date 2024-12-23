@@ -69,6 +69,8 @@ export default {
       type: Number,
       default: 10,
     },
+    queryTable: {
+    },
   },
   computed: {
     style() {
@@ -96,7 +98,8 @@ export default {
     },
     // 刷新
     refresh() {
-      this.$emit("queryTable");
+      this.queryTable()
+     /* this.$emit("queryTable");*/
     },
     // 右侧列表元素变化
     dataChange(data) {

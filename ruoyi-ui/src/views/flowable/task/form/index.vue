@@ -37,7 +37,8 @@
           v-hasPermi="['flowable:form:remove']"
         >删除</el-button>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+<!--      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>-->
+      <right-toolbar :showSearch.sync="showSearch" :queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="formList" @selection-change="handleSelectionChange">
@@ -104,7 +105,7 @@
     </el-dialog>
 
     <!--表单设计器-->
-    <el-dialog
+<!--    <el-dialog
       custom-class="dialogClass"
       :visible.sync="dialogVisible"
       :close-on-press-escape="false"
@@ -112,12 +113,12 @@
       :before-close="handleClose"
       append-to-body>
       <v-form-designer ref="vfDesigner" :designer-config="designerConfig">
-        <!-- 自定义按钮插槽演示 -->
+        &lt;!&ndash; 自定义按钮插槽演示 &ndash;&gt;
         <template #customSaveButton>
           <el-button type="text" @click="saveFormJson"><i class="el-icon-s-promotion" />保存</el-button>
         </template>
       </v-form-designer>
-    </el-dialog>
+    </el-dialog>-->
 
     <!--系统表单信息-->
     <el-dialog :title="formTitle" :visible.sync="formOpen" width="500px" append-to-body>

@@ -134,10 +134,12 @@ export default {
       // 初始第一个选中元素 bpmn:Process
       this.initFormOnChanged(null);
       this.modelerStore.modeler.on("import.done", e => {
+        //console.log("import.done")
         this.initFormOnChanged(null);
       });
       // 监听选择事件，修改当前激活的元素以及表单
       this.modelerStore.modeler.on("selection.changed", ({newSelection}) => {
+        //console.log("selection.changed",newSelection)
         this.initFormOnChanged(newSelection[0] || null);
       });
       this.modelerStore.modeler.on("element.changed", ({element}) => {

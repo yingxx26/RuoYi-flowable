@@ -60,6 +60,7 @@ export default {
   watch: {
     id: {
       handler(newVal) {
+        console.log(newVal)
         if (StrUtil.isNotBlank(newVal)) {
           this.resetTaskForm();
         }
@@ -73,6 +74,7 @@ export default {
   },
   methods: {
     resetTaskForm() {
+      console.log(this.modelerStore.element)
       this.bpmnFormData = JSON.parse(JSON.stringify(this.modelerStore.element.businessObject));
     },
     updateElementTask(key) {

@@ -69,7 +69,7 @@ public class FlowTaskController extends BaseController {
         return flowTaskService.finishedList(queryVo);
     }
 
-
+    //打开待办任务
     @ApiOperation(value = "流程历史流转记录", response = FlowTaskDto.class)
     @GetMapping(value = "/flowRecord")
     public AjaxResult flowRecord(String procInsId, String deployId) {
@@ -95,6 +95,7 @@ public class FlowTaskController extends BaseController {
         return flowTaskService.processVariables(taskId);
     }
 
+    //完成任务
     @ApiOperation(value = "审批任务")
     @Log(title = "审批任务", businessType = BusinessType.UPDATE)
     @PostMapping(value = "/complete")
@@ -238,7 +239,7 @@ public class FlowTaskController extends BaseController {
     }
 
     /**
-     * 流程节点信息
+     * 流程节点信息（流程图）
      *
      * @param procInsId 流程实例id
      * @return

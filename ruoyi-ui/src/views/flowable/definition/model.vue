@@ -22,6 +22,7 @@ import BpmnModel from '@/components/Process'
 import vkBeautify from 'vkbeautify'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atelier-savanna-dark.css'
+import {StrUtil} from "@/utils/StrUtil";
 export default {
   name: "Model",
   components: {
@@ -71,12 +72,22 @@ export default {
   },
   created () {
     const deployId = this.$route.query && this.$route.query.deployId;
+
     //  查询流程xml
     if (deployId) {
       this.getXmlData(deployId);
     }
     this.getDataList()
   },
+  /*watch:{
+    xml: {
+      handler(val) {
+        if (StrUtil.isNotBlank(val)) {
+         console.log(val)
+        }
+      }
+    }
+  },*/
   methods: {
     /** xml 文件 */
     getXmlData(deployId) {

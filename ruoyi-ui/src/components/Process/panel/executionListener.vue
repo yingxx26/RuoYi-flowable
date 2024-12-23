@@ -271,10 +271,10 @@ export default {
   },
   created() {
     this.getList();
-
   },
   methods: {
     resetListenersList() {
+      console.log(this.modelerStore.element)
       this.bpmnElementListeners =
         this.modelerStore.element.businessObject?.extensionElements?.values?.filter(ex => ex.$type === `flowable:ExecutionListener`) ?? [];
       this.elementListenersList = this.bpmnElementListeners.map(listener => this.initListenerType(listener));
@@ -297,12 +297,17 @@ export default {
         }));
       } else {
         this.fieldsListOfListener = [];
+       /*Vue声明在data中的属性都是响应式的，也就是，我们在修改data中的属性时，一般页面都能实时更新。但是由于 JavaScript 的限制，Vue 不能检测数组和对象的变化。
+       比如我们对data中的对象属性和数组属性进行一些修改时，无法响应式更新渲染到页面，因此vue提供了$set这个API来解决这个限制。
+       当我们给一个对象添加属性时，在控制台上可以打印出来，但是视图却没有更新，此时this.$set()就派上用场了*/
         this.$set(this.listenerForm, "fields", []);
       }
       // 打开侧边栏并清楚验证状态
       this.listenerFormModelVisible = true;
       this.$nextTick(() => {
-        if (this.$refs["listenerFormRef"]) this.$refs["listenerFormRef"].clearValidate();
+        if (this.$refs["listenerFormRef"])
+          //‌this.$refs‌ 是Vue.js中的一个特殊属性，用于访问模板中使用ref属性标记的DOM元素或子组件实例。通过this.$refs，开发者可以直接操作DOM元素或与子组件进行通信，而不需要通过props或事件的方式进行交互‌
+          this.$refs["listenerFormRef"].clearValidate();
       });
     },
 
@@ -321,9 +326,11 @@ export default {
       let validateStatus = await this.$refs["listenerFieldFormRef"].validate();
       if (!validateStatus) return; // 验证不通过直接返回
       if (this.editingListenerFieldIndex === -1) {
+        //新增
         this.fieldsListOfListener.push(this.listenerFieldForm);
         this.listenerForm.fields.push(this.listenerFieldForm);
       } else {
+        //更新
         this.fieldsListOfListener.splice(this.editingListenerFieldIndex, 1, this.listenerFieldForm);
         this.listenerForm.fields.splice(this.editingListenerFieldIndex, 1, this.listenerFieldForm);
       }
@@ -394,6 +401,8 @@ export default {
       let self = {
         ...listener
       };
+      console.log(listener);
+      console.log(self);
       if (listener.script) {
         self = {
           ...listener,
@@ -411,7 +420,7 @@ export default {
               self.eventDefinitionType = key.replace("time", "").toLowerCase();
             }
           }
-          console.log(k);
+
           self.eventTimeDefinitions = listener.eventDefinitions[0][k].body;
         }
       }

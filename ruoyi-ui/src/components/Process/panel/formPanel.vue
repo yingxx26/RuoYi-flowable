@@ -59,6 +59,7 @@ export default {
     },
 
     updateElementFormKey(val) {
+      console.log(val)
       if (StrUtil.isBlank(val)) {
         delete this.modelerStore.element.businessObject[`formKey`]
       } else {

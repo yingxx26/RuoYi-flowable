@@ -56,6 +56,7 @@ export default {
   watch: {
     flowData: {
       handler(newValue) {
+        debugger
         if (Object.keys(newValue).length > 0) {
           // 生成实例
           this.bpmnViewer && this.bpmnViewer.destroy();
@@ -69,7 +70,6 @@ export default {
     },
   },
   created() {
-
   },
   methods: {
     // 加载流程图片
@@ -102,15 +102,19 @@ export default {
     // 设置高亮颜色的
     fillColor(nodeData) {
       const canvas = this.bpmnViewer.get('canvas')
-      this.bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
+      let rootElement = this.bpmnViewer.getDefinitions();
+      console.log(nodeData)
+      rootElement.rootElements[0].flowElements.forEach(n => {
         const completeTask = nodeData.find(m => m.key === n.id)
         const todoTask = nodeData.find(m => !m.completed)
         const endTask = nodeData[nodeData.length - 1]
         if (n.$type === 'bpmn:UserTask') {
           if (completeTask) {
             canvas.addMarker(n.id, completeTask.completed ? 'highlight' : 'highlight-todo')
+
             n.outgoing?.forEach(nn => {
               const targetTask = nodeData.find(m => m.key === nn.targetRef.id)
+
               if (targetTask) {
                 if (todoTask && completeTask.key === todoTask.key && !todoTask.completed) {
                   canvas.addMarker(nn.id, todoTask.completed ? 'highlight' : 'highlight-todo')
@@ -127,10 +131,12 @@ export default {
         else if (n.$type === 'bpmn:ExclusiveGateway') {
           if (completeTask) {
             canvas.addMarker(n.id, completeTask.completed ? 'highlight' : 'highlight-todo')
+            /*console.log('n',n)*/
             n.outgoing?.forEach(nn => {
               const targetTask = nodeData.find(m => m.key === nn.targetRef.id)
+              /*console.log('nn',nn)
+              console.log('targetTask',targetTask)*/
               if (targetTask) {
-
                 canvas.addMarker(nn.id, targetTask.completed ? 'highlight' : 'highlight-todo')
                 canvas.addMarker(nn.targetRef.id, targetTask.completed ? 'highlight' : 'highlight-todo')
               }
