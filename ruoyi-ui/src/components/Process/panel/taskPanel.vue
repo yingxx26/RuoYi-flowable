@@ -120,6 +120,7 @@ import FlowRole from '@/components/flow/Role'
 import FlowExp from '@/components/flow/Expression'
 import ElInputTag from '@/components/flow/ElInputTag'
 import {StrUtil} from '@/utils/StrUtil'
+import {expList, roleList, userList} from "@/api/flowable/definition";
 
 export default {
   name: "TaskPanel",
@@ -247,6 +248,7 @@ export default {
 
     // 设计器右侧表单数据回显
     checkValuesEcho(formData) {
+      debugger
       if (StrUtil.isNotBlank(formData.expId)) {
         this.getExpList(formData.expId, formData.userType);
       } else {
@@ -269,10 +271,16 @@ export default {
     // 获取人员信息
     getUserList(val, key) {
       if (StrUtil.isNotBlank(val)) {
+        debugger
+        console.log("yxx",this.modelerStore)
         const newArr = this.modelerStore.userList?.filter(i => val.split(',').includes(i.userId.toString()))
+        /*const newArr = [{
+             assignee: "2",
+          nickName: "yxx"
+        }];*/
         this.bpmnFormData[key] = newArr.map(item => item.nickName).join(',');
         if ('assignee' === key) {
-          this.selectData[key] = newArr.find(item => item.userId.toString() === val).userId;
+          this.selectData[key] = newArr.find(item => item.userId.toString() === val)?.userId;
         } else {
           this.selectData[key] = newArr.map(item => item.userId);
         }

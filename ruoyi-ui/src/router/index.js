@@ -98,6 +98,12 @@ export const constantRoutes = [
         component: () => import('@/views/flowable/definition/model'),
         name: 'Model',
         meta: { title: '流程设计', icon: '' }
+      },
+      {
+        path: 'test/model/',
+        component: () => import('@/views/flowable/test/model'),
+        name: 'testModel',
+        meta: { title: '流程设计', icon: '' }
       }
     ]
   },
