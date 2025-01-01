@@ -23,8 +23,8 @@
           </div>
         </el-header>
         <el-container>
-          <el-aside width="80%" >
-              <div ref="canvas" class="canvas"/>
+          <el-aside width="80%">
+            <div ref="canvas" class="canvas"/>
           </el-aside>
           <el-main>
             <designer v-if="loadCanvas"></designer>
@@ -97,28 +97,25 @@ export default {
     },
   },
   mounted() {
-    /** 创建bpmn 实例 */
     const modeler = new Modeler({
       container: this.$refs.canvas,
       additionalModules: this.additionalModules,
       moddleExtensions: {
         flowable: FlowableModule
       },
-      keyboard: {bindTo: document},
+      keyboard: {bindTo: document}
     })
     this.modeler = modeler;
-    // 注册 modeler 相关信息
     this.modelerStore.modeler = modeler;
     this.modelerStore.modeling = modeler.get("modeling");
     this.modelerStore.moddle = modeler.get("moddle");
     this.modelerStore.canvas = modeler.get("canvas");
     this.modelerStore.bpmnFactory = modeler.get("bpmnFactory");
     this.modelerStore.elRegistry = modeler.get("elementRegistry");
-    // 直接点击新建按钮时,进行新增流程图
     if (StrUtil.isBlank(this.xml)) {
-      this.newDiagram()
+      this.newDiagram();
     } else {
-      this.createNewDiagram(this.xml)
+      this.createNewDiagram(this.xml);
     }
   },
   methods: {
@@ -127,17 +124,14 @@ export default {
       this.createNewDiagram(getInitStr())
     },
 
-    // 根据提供的xml创建流程图
     async createNewDiagram(data) {
-      // 将字符串转换成图显示出来
-      // data = data.replace(/<!\[CDATA\[(.+?)]]>/g, '&lt;![CDATA[$1]]&gt;')
       if (StrUtil.isNotBlank(this.modelerStore.modeler)) {
         data = data.replace(/<!\[CDATA\[(.+?)]]>/g, function (match, str) {
             return str.replace(/</g, '&lt;')
           }
         )
         try {
-          await this.modelerStore.modeler.importXML(data)
+          await this.modelerStore.modeler.importXML(data);
           this.fitViewport()
         } catch (err) {
           console.error(err.message, err.warnings)
@@ -146,28 +140,20 @@ export default {
     },
     // 让图能自适应屏幕
     fitViewport() {
-
-      this.zoom = this.modelerStore.canvas.zoom('fit-viewport')
-      //外面容器
-      const bbox = document.querySelector('.flow-containers .viewport').getBBox()
-      //里面画布
+      const bbox = document.querySelector('.flow-containers .viewport').getBBox();
       const currentViewBox = this.modelerStore.canvas.viewbox()
-      //x是左边，y是上边
       const elementMid = {
         x: bbox.x + bbox.width / 2 - 65,
         y: bbox.y + bbox.height / 2
       }
-      this.modelerStore.canvas.viewbox({
+      const center = {
         x: elementMid.x - currentViewBox.width / 2,
         y: elementMid.y - currentViewBox.height / 2,
         width: currentViewBox.width,
         height: currentViewBox.height
-      })
-      this.zoom = bbox.width / currentViewBox.width * 1.8
+      }
+      this.modelerStore.canvas.viewbox(center)
       this.loadCanvas = true;
-     /* console.log('x', bbox.x, currentViewBox.x, elementMid.x, elementMid.x - currentViewBox.width / 2)
-      console.log('y', bbox.y, currentViewBox.y, elementMid.y, elementMid.y - currentViewBox.height / 2)
-*/
     },
 
 
@@ -280,5 +266,7 @@ export default {
 @import "~bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css";
 @import "~bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 //@import "~bpmn-js-bpmnlint/dist/assets/css/bpmn-js-bpmnlint.css";
-
+.flow-containers {
+  width: 100%;
+  height: 100%;}
 </style>

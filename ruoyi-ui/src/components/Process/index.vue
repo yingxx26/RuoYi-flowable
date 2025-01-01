@@ -168,7 +168,7 @@ export default {
     // 让图能自适应屏幕
     fitViewport() {
 
-      this.zoom = this.modelerStore.canvas.zoom('fit-viewport')
+     // this.zoom = this.modelerStore.canvas.zoom('fit-viewport')
       //外面容器
       const bbox = document.querySelector('.flow-containers .viewport').getBBox()
       //里面画布
@@ -184,11 +184,9 @@ export default {
         width: currentViewBox.width,
         height: currentViewBox.height
       })
-      this.zoom = bbox.width / currentViewBox.width * 1.8
+     // this.zoom = bbox.width / currentViewBox.width * 1.8
       this.loadCanvas = true;
-     /* console.log('x', bbox.x, currentViewBox.x, elementMid.x, elementMid.x - currentViewBox.width / 2)
-      console.log('y', bbox.y, currentViewBox.y, elementMid.y, elementMid.y - currentViewBox.height / 2)
-*/
+
     },
 
 
