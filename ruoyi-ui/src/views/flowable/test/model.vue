@@ -1,6 +1,6 @@
 <template>
   <div>
-    <bpmn-model
+    <MyBpmnModel
       v-if="dataExit"
       :xml="xml"
       :is-view="false"
@@ -10,9 +10,9 @@
     <!--在线查看xml-->
     <el-drawer :title="xmlTitle" :modal="false" direction="rtl" :visible.sync="xmlOpen" size="60%">
       <!-- 设置对话框内容高度 -->
-        <el-scrollbar>
-            <pre v-highlight="xmlData"><code class="xml"></code></pre>
-        </el-scrollbar>
+      <el-scrollbar>
+        <pre v-highlight="xmlData"><code class="xml"></code></pre>
+      </el-scrollbar>
     </el-drawer>
   </div>
 </template>
@@ -23,9 +23,11 @@ import vkBeautify from 'vkbeautify'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atelier-savanna-dark.css'
 import {StrUtil} from "@/utils/StrUtil";
+import MyBpmnModel from "@/components/MyProcess/index.vue";
 export default {
   name: "Model",
   components: {
+    MyBpmnModel,
     BpmnModel,
     vkBeautify
   },

@@ -1,60 +1,39 @@
 <template>
   <div v-loading="isView" class="flow-containers" :class="{ 'view-mode': isView }">
-    <el-container style="height: 100%">
-      <el-header style="border-bottom: 1px solid rgb(218 218 218);height: auto;padding-left:0">
-        <div style="display: flex; padding: 10px 0; justify-content: space-between;">
-          <el-button-group>
-            <el-upload action="" :before-upload="openBpmn" style="margin-right: 10px; display:inline-block;">
-              <el-tooltip effect="dark" content="加载xml" placement="bottom">
-                <el-button size="mini" icon="el-icon-folder-opened"/>
-              </el-tooltip>
-            </el-upload>
-            <el-tooltip effect="dark" content="新建" placement="bottom">
-              <el-button size="mini" icon="el-icon-circle-plus" @click="newDiagram"/>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="自适应屏幕" placement="bottom">
-              <el-button size="mini" icon="el-icon-rank" @click="fitViewport"/>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="放大" placement="bottom">
-              <el-button size="mini" icon="el-icon-zoom-in" @click="zoomViewport(true)"/>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="缩小" placement="bottom">
-              <el-button size="mini" icon="el-icon-zoom-out" @click="zoomViewport(false)"/>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="后退" placement="bottom">
-              <el-button size="mini" icon="el-icon-back" @click="modeler.get('commandStack').undo()"/>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="前进" placement="bottom">
-              <el-button size="mini" icon="el-icon-right" @click="modeler.get('commandStack').redo()"/>
-            </el-tooltip>
-            <!--            <el-button size="mini" icon="el-icon-share" @click="processSimulation">-->
-            <!--              {{ this.simulationStatus ? '退出模拟' : '开启模拟' }}-->
-            <!--            </el-button>-->
-            <!--            <el-button size="mini" icon="el-icon-first-aid-kit" @click="handlerIntegrityCheck">-->
-            <!--              {{ this.bpmnlintStatus ? '关闭检查' : '开启检查' }}-->
-            <!--            </el-button>-->
-          </el-button-group>
-          <el-button-group>
-            <el-button size="mini" icon="el-icon-view" @click="showXML">查看xml</el-button>
-            <el-button size="mini" icon="el-icon-download" @click="saveXML(true)">下载xml</el-button>
-            <el-button size="mini" icon="el-icon-picture" @click="saveImg('svg', true)">下载svg</el-button>
-            <el-button size="mini" type="primary" @click="save">保存模型</el-button>
-            <el-button size="mini" type="danger" @click="goBack">关闭</el-button>
-          </el-button-group>
-        </div>
-      </el-header>
-      <!-- 流程设计页面 -->
-      <el-container style="align-items: stretch">
-        <el-main>
-          <div ref="canvas" class="canvas"/>
-        </el-main>
+    <div style="height: 100%">
 
-        <!--右侧属性栏-->
-        <el-card shadow="never" class="normalPanel">
-          <designer v-if="loadCanvas"></designer>
-        </el-card>
+      <el-container>
+        <el-header style="border-bottom: solid 1px rgb(218 218 218);height: auto;padding-left: 0">
+          <div style="display:flex;justify-content: space-between;padding: 5px">
+            <el-button-group>
+              <el-button size="mini" icon="el-icon-circle-plus" @click="newDiagram"/>
+              <el-button size="mini" icon="el-icon-rank" @click="fitViewport"/>
+              <el-button size="mini" icon="el-icon-zoom-in" @click="zoomViewport(true)"/>
+              <el-button size="mini" icon="el-icon-zoom-out" @click="zoomViewport(false)"/>
+              <el-button size="mini" icon="el-icon-back" @click="modeler.get('commandStack').undo()"/>
+              <el-button size="mini" icon="el-icon-right" @click="modeler.get('commandStack').redo()"/>
+            </el-button-group>
+            <el-button-group>
+              <el-button size="mini" icon="el-icon-view" @click="showXML">查看xml</el-button>
+              <el-button size="mini" icon="el-icon-download" @click="saveXML(true)">下载xml</el-button>
+              <el-button size="mini" icon="el-icon-picture" @click="saveImg('svg', true)">下载svg</el-button>
+              <el-button size="mini" type="primary" @click="save">保存模型</el-button>
+              <el-button size="mini" type="danger" @click="goBack">关闭</el-button>
+            </el-button-group>
+          </div>
+        </el-header>
+        <el-container>
+          <el-aside width="80%" >
+              <div ref="canvas" class="canvas"/>
+          </el-aside>
+          <el-main>
+            <designer v-if="loadCanvas"></designer>
+          </el-main>
+        </el-container>
       </el-container>
-    </el-container>
+
+
+    </div>
   </div>
 </template>
 
@@ -70,7 +49,7 @@ import FlowableModule from './flowable/flowable.json'
 import customControlsModule from './customPanel'
 
 export default {
-  name: "BpmnModel",
+  name: "MyBpmnModel",
   components: {Designer},
   /** 组件传值  */
   props: {
@@ -301,66 +280,5 @@ export default {
 @import "~bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css";
 @import "~bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 //@import "~bpmn-js-bpmnlint/dist/assets/css/bpmn-js-bpmnlint.css";
-.view-mode {
-  .el-header, .el-aside, .djs-palette, .bjs-powered-by {
-    display: none;
-  }
 
-  .el-loading-mask {
-    background-color: initial;
-  }
-
-  .el-loading-spinner {
-    display: none;
-  }
-}
-
-.flow-containers {
-  width: 100%;
-  height: 100%;
-
-  .canvas {
-    min-height: 800px;
-    width: 100%;
-    height: 100%;
-    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9Ii4yIi8+PHBhdGggZD0iTTQwIDBIMHY0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBlMGUwIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2EpIi8+PC9zdmc+")
-  }
-
-  .panel {
-    position: absolute;
-    right: 0;
-    top: 50px;
-    width: 300px;
-  }
-
-  .load {
-    margin-right: 10px;
-  }
-
-  .normalPanel {
-    width: 460px;
-    height: 100%;
-    padding: 20px 20px;
-  }
-
-  .el-main {
-    position: relative;
-    padding: 0;
-  }
-
-  .el-main .button-group {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    width: auto;
-    height: auto;
-    top: 10px;
-    right: 10px;
-  }
-
-  .button-group .el-button {
-    width: 100%;
-    margin: 0 0 5px;
-  }
-}
 </style>
