@@ -184,9 +184,8 @@ export default {
         width: currentViewBox.width,
         height: currentViewBox.height
       })
-     // this.zoom = bbox.width / currentViewBox.width * 1.8
+      this.zoom = bbox.width / currentViewBox.width * 1.8
       this.loadCanvas = true;
-
     },
 
 
