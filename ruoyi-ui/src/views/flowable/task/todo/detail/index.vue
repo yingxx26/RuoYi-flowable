@@ -13,7 +13,8 @@
           <el-col :span="16" :offset="4">
             <v-form-render ref="vFormRef"/>
             <div style="margin-left:10%;margin-bottom: 20px;font-size: 14px;">
-              <el-button type="primary" @click="handleComplete">审 批</el-button>
+              <el-button type="primary" @click="handleComplete">审批</el-button>
+              <el-button type="primary" @click="handleReject">驳回</el-button>
             </div>
           </el-col>
         </el-tab-pane>
