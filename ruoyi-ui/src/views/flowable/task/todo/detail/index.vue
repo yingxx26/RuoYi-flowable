@@ -12,6 +12,9 @@
         <el-tab-pane label="表单信息" name="1">
           <el-col :span="16" :offset="4">
             <v-form-render ref="vFormRef"/>
+
+<!--            <div v-if="this.taskName=='b'">ok</div>
+            <div v-if="this.taskName=='a'">not ok</div>-->
             <div style="margin-left:10%;margin-bottom: 20px;font-size: 14px;">
               <el-button type="primary" @click="handleComplete">审 批</el-button>
               <el-button type="primary" @click="handleReject">驳 回</el-button>
