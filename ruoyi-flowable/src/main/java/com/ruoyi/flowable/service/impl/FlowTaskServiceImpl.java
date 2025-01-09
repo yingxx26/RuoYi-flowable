@@ -204,7 +204,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         }));
         // 设置驳回意见
         currentTaskIds.forEach(item -> taskService.addComment(item, task.getProcessInstanceId(), FlowComment.REJECT.getType(), flowTaskVo.getComment()));
-
+        //targetIds 是前面，currentIds是后面
         try {
             // 如果父级任务多于 1 个，说明当前节点不是并行节点，原因为不考虑多对多情况
             if (targetIds.size() > 1) {

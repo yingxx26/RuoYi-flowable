@@ -14,6 +14,7 @@
             <v-form-render ref="vFormRef"/>
             <div style="margin-left:10%;margin-bottom: 20px;font-size: 14px;">
               <el-button type="primary" @click="handleComplete">审 批</el-button>
+              <el-button type="primary" @click="handleReject">驳 回</el-button>
             </div>
           </el-col>
         </el-tab-pane>

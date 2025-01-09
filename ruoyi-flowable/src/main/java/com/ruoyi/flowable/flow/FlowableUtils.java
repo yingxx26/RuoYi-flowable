@@ -111,14 +111,14 @@ public class FlowableUtils {
                 }
                 // 添加已经走过的连线
                 hasSequenceFlow.add(sequenceFlow.getId());
-                // 类型为用户节点，则新增父级节点
+                // 源头类型为用户节点，则userTaskList新增父级节点
                 if (sequenceFlow.getSourceFlowElement() instanceof UserTask) {
                     userTaskList.add((UserTask) sequenceFlow.getSourceFlowElement());
                     continue;
                 }
-                // 类型为子流程，则添加子流程开始节点出口处相连的节点
+                // 源头类型为子流程，则添加子流程开始节点出口处相连的节点
                 if (sequenceFlow.getSourceFlowElement() instanceof SubProcess) {
-                    // 获取子流程用户任务节点
+                    // 获取子流程用户任务节点   子流程的起始节点sequenceFlow.getSourceFlowElement()).getFlowElements().toArray()[0]
                     List<UserTask> childUserTaskList = findChildProcessUserTasks((StartEvent) ((SubProcess) sequenceFlow.getSourceFlowElement()).getFlowElements().toArray()[0], null, null);
                     // 如果找到节点，则说明该线路找到节点，不继续向下找，反之继续
                     if (childUserTaskList != null && childUserTaskList.size() > 0) {

@@ -121,6 +121,7 @@ export default {
           if (data) {
             this.formData = formData;
             if (data.dataType === 'dynamic') {
+              alert(1)
               if (data.type === 'assignee') { // 指定人员
                 this.checkSendUser = true;
                 this.checkType = "single";
@@ -138,6 +139,7 @@ export default {
               this.taskOpen = true;
               this.taskTitle = "选择任务接收";
             } else {
+              alert(2)
               if (this.procDefId) {
                 const param = {
                   formJson:  this.formJson,
