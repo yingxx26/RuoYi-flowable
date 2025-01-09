@@ -159,18 +159,17 @@ export default {
 
     // 放大缩小
     zoomViewport(zoomIn = true) {
-      this.zoom = this.modelerStore.canvas.zoom()
-      this.zoom += (zoomIn ? 0.1 : -0.1)
-      this.modelerStore.canvas.zoom(this.zoom)
+      this.zoom += (zoomIn ? 0.1 : -0.1);
+      this.modelerStore.canvas.zoom(this.zoom);
     },
 
     // 获取流程基础信息
     getProcess() {
-      const element = this.getProcessElement()
+      const {id, name, processCategory} = this.getProcessElement()
       return {
-        id: element.id,
-        name: element.name,
-        category: element.processCategory
+        id: id,
+        name: name,
+        category: processCategory
       }
     },
 
@@ -178,31 +177,23 @@ export default {
     getProcessElement() {
       const rootElements = this.modelerStore.modeler.getDefinitions().rootElements
       for (let i = 0; i < rootElements.length; i++) {
-        if (rootElements[i].$type === 'bpmn:Process') return rootElements[i]
+        if (rootElements[i].$type === 'bpmn:Process') return rootElements[i];
       }
     },
 
     // 保存xml
     async saveXML(download = false) {
-      try {
-        const {xml} = await this.modelerStore.modeler.saveXML({format: true})
-        if (download) {
-          this.downloadFile(`${this.getProcessElement().name}.bpmn20.xml`, xml, 'application/xml')
-        }
-        return xml
-      } catch (err) {
-        console.log(err)
+      const {xml} = await this.modelerStore.modeler.saveXML({format: true});
+      if (download) {
+        this.downloadFile(`${this.getProcessElement().name}.bpmn20.xml`, xml, 'application/xml')
       }
+      return xml;
     },
 
     // 在线查看xml
     async showXML() {
-      try {
-        const xmlStr = await this.saveXML()
-        this.$emit('showXML', xmlStr)
-      } catch (err) {
-        console.log(err)
-      }
+      const xmlstr = await this.saveXML();
+      this.$emit('showXML', xmlstr);
     },
 
     // 保存流程图为svg
@@ -220,10 +211,10 @@ export default {
 
     // 保存流程图
     async save() {
-      const process = this.getProcess()
-      const xml = await this.saveXML()
-      const svg = await this.saveImg()
-      const result = {process, xml, svg}
+      const process = this.getProcess();
+      const xml = await this.saveImg();
+      const svg = await this.saveXML();
+      const result = {process, xml, svg};
       this.$emit('save', result)
       window.parent.postMessage(result, '*')
       this.goBack();
@@ -268,5 +259,6 @@ export default {
 //@import "~bpmn-js-bpmnlint/dist/assets/css/bpmn-js-bpmnlint.css";
 .flow-containers {
   width: 100%;
-  height: 100%;}
+  height: 100%;
+}
 </style>

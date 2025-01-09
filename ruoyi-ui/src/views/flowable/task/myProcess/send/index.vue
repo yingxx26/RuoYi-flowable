@@ -146,6 +146,7 @@ export default {
                 }
                 // 复制对象的属性值给新的对象
                 Object.assign(param, formData);
+                alert("getNextFlowNodeByStart")
                 // 启动流程并将表单数据加入流程变量
                 definitionStart(this.procDefId, param).then(res => {
                   this.$modal.msgSuccess(res.msg);

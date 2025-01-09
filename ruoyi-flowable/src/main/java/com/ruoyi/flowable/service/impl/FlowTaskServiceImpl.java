@@ -61,6 +61,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -1006,7 +1008,11 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
             MultiInstanceLoopCharacteristics multiInstance = userTask.getLoopCharacteristics();
             // 会签节点
             if (Objects.nonNull(multiInstance)) {
-                flowNextDto.setVars(multiInstance.getInputDataItem());
+                String textSource = multiInstance.getInputDataItem();
+                String replace = textSource.replace("${", "");
+                String textC=replace.replace("}","");
+
+                flowNextDto.setVars(textC);
                 flowNextDto.setType(ProcessConstants.PROCESS_MULTI_INSTANCE);
                 flowNextDto.setDataType(ProcessConstants.DYNAMIC);
             } else {
