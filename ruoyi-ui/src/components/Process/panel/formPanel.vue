@@ -2,7 +2,7 @@
   <div>
     <el-form label-width="80px" size="small" @submit.native.prevent>
       <el-form-item label="流程表单">
-        <el-select v-model="bpmnFormData.formKey" clearable class="m-2" placeholder="挂载节点表单" @change="updateElementFormKey">
+        <el-select v-model="formKey" clearable class="m-2" placeholder="挂载节点表单" @change="updateElementFormKey">
           <el-option
               v-for="item in formList"
               :key="item.value"
@@ -31,7 +31,7 @@ export default {
   data() {
     return {
       formList: [], // 表单数据
-      bpmnFormData: {}
+      formKey: String
     }
   },
 
@@ -55,11 +55,10 @@ export default {
 
     // 方法区
     resetFlowForm() {
-      this.bpmnFormData.formKey = this.modelerStore.element.businessObject.formKey;
+      this.formKey = this.modelerStore.element.businessObject.formKey;
     },
 
     updateElementFormKey(val) {
-      console.log(val)
       if (StrUtil.isBlank(val)) {
         delete this.modelerStore.element.businessObject[`formKey`]
       } else {

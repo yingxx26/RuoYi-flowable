@@ -96,8 +96,21 @@ export default {
       // 发送请求，获取xml
       readXml(deployId).then(res =>{
         this.xml = res.data;
-        this.modeler = res.data
+        //this.modeler = res.data
       })
+    },
+    /** 指定流程办理人员列表 */
+    getDataList() {
+      userList().then(res => {
+        this.modelerStore.userList = res.data;
+      })
+      roleList().then(res => {
+        this.modelerStore.roleList = res.data;
+      })
+      expList().then(res => {
+        this.modelerStore.expList = res.data;
+        this.dataExit = true;
+      });
     },
     /** 保存xml */
     save(data) {
@@ -112,20 +125,6 @@ export default {
         const obj = { path: "/flowable/definition", query: { t: Date.now()} };
         this.$tab.closeOpenPage(obj);
       })
-    },
-    /** 指定流程办理人员列表 */
-    getDataList() {
-      userList().then(res => {
-        debugger
-        this.modelerStore.userList = res.data;
-      })
-      roleList().then(res => {
-        this.modelerStore.roleList = res.data;
-      })
-      expList().then(res => {
-        this.modelerStore.expList = res.data;
-        this.dataExit = true;
-      });
     },
     /** 展示xml */
     showXML(xmlData){

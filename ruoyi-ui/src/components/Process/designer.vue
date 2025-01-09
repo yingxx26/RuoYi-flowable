@@ -21,7 +21,7 @@
         <!--   表单     -->
         <el-collapse-item name="form" v-if="formVisible">
           <template slot="title"><i class="el-icon-s-order"></i> 表单配置</template>
-          <form-panel :id="elementId"/>
+          <form-panel :id="elementId"  />
         </el-collapse-item>
 
         <!--   执行监听器     -->
@@ -180,7 +180,7 @@ export default {
     },
     translateNodeName(val){
       return translateNodeName(val);
-    }
+    },
   }
 }
 </script>

@@ -114,7 +114,6 @@ export default {
     /** 指定流程办理人员列表 */
     getDataList() {
       userList().then(res => {
-        debugger
         this.modelerStore.userList = res.data;
       })
       roleList().then(res => {
