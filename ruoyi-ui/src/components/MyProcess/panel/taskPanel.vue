@@ -43,6 +43,20 @@
         </el-button-group>
       </el-form-item>
 
+      <el-form-item label="测试" v-if="bpmnFormData.userType === 'test'">
+        <el-input-tag v-model="bpmnFormData.assignee" :value="bpmnFormData.assignee"/>
+        <el-button-group class="ml-4" style="margin-top: 4px">
+          <!--指定人员-->
+          <el-tooltip class="box-item" effect="dark" content="指定人员" placement="bottom">
+            <el-button size="mini" type="primary" icon="el-icon-user" @click="singleUserCheck"/>
+          </el-tooltip>
+          <!--选择表达式-->
+          <el-tooltip class="box-item" effect="dark" content="选择表达式" placement="bottom">
+            <el-button size="mini" type="warning" icon="el-icon-postcard" @click="singleExpCheck"/>
+          </el-tooltip>
+        </el-button-group>
+      </el-form-item>
+
       <el-form-item label="候选角色" v-else>
         <el-input-tag v-model="bpmnFormData.candidateGroups" :value="bpmnFormData.candidateGroups"/>
         <el-button-group class="ml-4" style="margin-top: 4px">
@@ -148,9 +162,11 @@ export default {
       userTypeOption: [
         {label: '指定人员', value: 'assignee'},
         {label: '候选人员', value: 'candidateUsers'},
-        {label: '候选角色', value: 'candidateGroups'}
+        {label: '候选角色', value: 'candidateGroups'},
+        {label: '测试', value: 'test'}
       ],
       checkAll: false,
+      // 属性面板数据回显
       bpmnFormData: {
         userType: "",
         assignee: "",
@@ -161,7 +177,7 @@ export default {
         dataType: "",
         expId: "",
       },
-      // 数据回显
+      // 弹窗数据回显
       selectData: {
         assignee: null,
         candidateUsers: null,
@@ -208,6 +224,7 @@ export default {
       }
       // 流程节点信息上取值
       for (let key in this.bpmnFormData) {
+        debugger
         const value = this.modelerStore.element?.businessObject[key] || this.bpmnFormData[key];
         this.$set(this.bpmnFormData, key, value);
       }
@@ -272,8 +289,7 @@ export default {
     getUserList(val, key) {
       if (StrUtil.isNotBlank(val)) {
         debugger
-        console.log("yxx",this.modelerStore)
-        const newArr = this.modelerStore.userList?.filter(i => val.split(',').includes(i.userId.toString()))
+        const newArr = this.modelerStore.userList?.filter(i => (val+"").split(',').includes(i.userId.toString()))
         /*const newArr = [{
              assignee: "2",
           nickName: "yxx"
@@ -286,6 +302,81 @@ export default {
         }
       }
     },
+
+    // ------ 流程审批人员信息弹出框 start---------
+
+    /*单选人员*/
+    singleUserCheck() {
+      this.userVisible = true;
+      this.checkType = "single";
+    },
+
+    // 用户选中数据 TODO: 后面更改为 点击确认按钮再赋值人员信息
+    userSelect(selection) {
+      if (selection) {
+        this.deleteFlowAttar();
+        this.updateCustomElement('dataType', 'fixed');
+        if (selection instanceof Array) {
+          const userIds = selection.map(item => item.userId);
+          const nickName = selection.map(item => item.nickName);
+          // userType = candidateUsers
+          this.bpmnFormData[this.bpmnFormData.userType] = nickName.join(',');
+          this.updateCustomElement(this.bpmnFormData.userType, userIds.join(','));
+          this.handleSelectData(this.bpmnFormData.userType, userIds);
+        } else {
+          // userType = assignee
+          this.bpmnFormData[this.bpmnFormData.userType] = selection.nickName;
+          this.updateCustomElement(this.bpmnFormData.userType, selection.userId);
+          this.handleSelectData(this.bpmnFormData.userType, selection.userId);
+        }
+      }
+    },
+
+
+    // 处理人员回显
+    handleSelectData(key, value) {
+      for (let oldKey in this.selectData) {
+        if (key !== oldKey) {
+          this.$set(this.selectData, oldKey, null);
+        } else {
+          this.$set(this.selectData, oldKey, value);
+        }
+      }
+    },
+
+    /*用户选中赋值*/
+    checkUserComplete() {
+      this.userVisible = false;
+      this.checkType = "";
+    },
+
+    // 删除节点
+    deleteFlowAttar() {
+      delete this.modelerStore.element.businessObject[`dataType`]
+      delete this.modelerStore.element.businessObject[`expId`]
+      delete this.modelerStore.element.businessObject[`assignee`]
+      delete this.modelerStore.element.businessObject[`candidateUsers`]
+      delete this.modelerStore.element.businessObject[`candidateGroups`]
+    },
+
+    // 去重数据
+    unique(arr, code) {
+      const res = new Map();
+      return arr.filter((item) => !res.has(item[code]) && res.set(item[code], 1));
+    },
+
+    // 更新扩展属性信息
+    updateElementExtensions(properties) {
+      const extensions = this.modelerStore.moddle.create("bpmn:ExtensionElements", {
+        values: this.otherExtensionList.concat([properties])
+      });
+
+      this.modelerStore.modeling.updateProperties(this.modelerStore.element, {
+        extensionElements: extensions
+      });
+    },
+    // ------  候选 角色---------
+
 
     // 获取角色信息
     getRoleList(val, key) {
@@ -300,13 +391,30 @@ export default {
       }
     },
 
-    // ------ 流程审批人员信息弹出框 start---------
 
-    /*单选人员*/
-    singleUserCheck() {
-      this.userVisible = true;
-      this.checkType = "single";
+    // 角色选中数据
+    roleSelect(selection, name) {
+      if (selection && name) {
+        this.deleteFlowAttar();
+        this.bpmnFormData[this.bpmnFormData.userType] = name;
+        this.updateCustomElement('dataType', 'fixed');
+        // userType = candidateGroups
+        this.updateCustomElement(this.bpmnFormData.userType, selection);
+        this.handleSelectData(this.bpmnFormData.userType, selection);
+      }
     },
+
+
+    /*候选角色选中赋值*/
+    checkRoleComplete() {
+      this.roleVisible = false;
+    },
+
+    /*表达式选中赋值*/
+    checkExpComplete() {
+      this.expVisible = false;
+    },
+
 
     /*多选人员*/
     multipleUserCheck() {
@@ -341,92 +449,6 @@ export default {
         this.handleSelectData("exp", selection.id);
       }
     },
-
-    // 用户选中数据 TODO: 后面更改为 点击确认按钮再赋值人员信息
-    userSelect(selection) {
-      if (selection) {
-        this.deleteFlowAttar();
-        this.updateCustomElement('dataType', 'fixed');
-        if (selection instanceof Array) {
-          const userIds = selection.map(item => item.userId);
-          const nickName = selection.map(item => item.nickName);
-          // userType = candidateUsers
-          this.bpmnFormData[this.bpmnFormData.userType] = nickName.join(',');
-          this.updateCustomElement(this.bpmnFormData.userType, userIds.join(','));
-          this.handleSelectData(this.bpmnFormData.userType, userIds);
-        } else {
-          // userType = assignee
-          this.bpmnFormData[this.bpmnFormData.userType] = selection.nickName;
-          this.updateCustomElement(this.bpmnFormData.userType, selection.userId);
-          this.handleSelectData(this.bpmnFormData.userType, selection.userId);
-        }
-      }
-    },
-
-    // 角色选中数据
-    roleSelect(selection, name) {
-      if (selection && name) {
-        this.deleteFlowAttar();
-        this.bpmnFormData[this.bpmnFormData.userType] = name;
-        this.updateCustomElement('dataType', 'fixed');
-        // userType = candidateGroups
-        this.updateCustomElement(this.bpmnFormData.userType, selection);
-        this.handleSelectData(this.bpmnFormData.userType, selection);
-      }
-    },
-
-    // 处理人员回显
-    handleSelectData(key, value) {
-      for (let oldKey in this.selectData) {
-        if (key !== oldKey) {
-          this.$set(this.selectData, oldKey, null);
-        } else {
-          this.$set(this.selectData, oldKey, value);
-        }
-      }
-    },
-
-    /*用户选中赋值*/
-    checkUserComplete() {
-      this.userVisible = false;
-      this.checkType = "";
-    },
-
-    /*候选角色选中赋值*/
-    checkRoleComplete() {
-      this.roleVisible = false;
-    },
-
-    /*表达式选中赋值*/
-    checkExpComplete() {
-      this.expVisible = false;
-    },
-
-    // 删除节点
-    deleteFlowAttar() {
-      delete this.modelerStore.element.businessObject[`dataType`]
-      delete this.modelerStore.element.businessObject[`expId`]
-      delete this.modelerStore.element.businessObject[`assignee`]
-      delete this.modelerStore.element.businessObject[`candidateUsers`]
-      delete this.modelerStore.element.businessObject[`candidateGroups`]
-    },
-
-    // 去重数据
-    unique(arr, code) {
-      const res = new Map();
-      return arr.filter((item) => !res.has(item[code]) && res.set(item[code], 1));
-    },
-
-    // 更新扩展属性信息
-    updateElementExtensions(properties) {
-      const extensions = this.modelerStore.moddle.create("bpmn:ExtensionElements", {
-        values: this.otherExtensionList.concat([properties])
-      });
-
-      this.modelerStore.modeling.updateProperties(this.modelerStore.element, {
-        extensionElements: extensions
-      });
-    }
   }
 }
 </script>
