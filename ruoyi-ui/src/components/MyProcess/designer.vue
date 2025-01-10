@@ -13,9 +13,15 @@
       </el-collapse-item>
 
       <!--   任务信息     -->
-      <el-collapse-item name="Task" v-if="elementType.indexOf('Task') !== -1">
-        <template slot="title"><i class="el-icon-s-claim"></i> 任务配置</template>
+<!--      <el-collapse-item name="Task" v-if="elementType.indexOf('Task') !== -1">
+        <template slot="title"><i class="el-icon-s-claim"></i> 原任务配置</template>
         <user-task-panel :id="elementId"/>
+      </el-collapse-item>-->
+
+      <!--   任务信息     -->
+      <el-collapse-item name="myTask" v-if="elementType.indexOf('Task') !== -1">
+        <template slot="title"><i class="el-icon-s-claim"></i> yxxxx任务配置</template>
+        <MyTaskPanel :id="elementId"/>
       </el-collapse-item>
 
       <!--   表单     -->
@@ -83,10 +89,12 @@ import FlowUser from "@/components/flow/User/index.vue";
 import FlowRole from "@/components/flow/Role/index.vue";
 import FlowExp from "@/components/flow/Expression/index.vue";
 import MyFormPanel from "@/components/MyProcess/panel/myformPanel.vue";
+import MyTaskPanel from "@/components/MyProcess/panel/myTaskPanel.vue";
 
 export default {
   name: "Designer",
   components: {
+    MyTaskPanel,
     MyFormPanel,
     ExecutionListener,
     TaskListener,
