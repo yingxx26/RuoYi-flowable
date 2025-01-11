@@ -13,10 +13,10 @@
       </el-collapse-item>
 
       <!--   任务信息     -->
-<!--      <el-collapse-item name="Task" v-if="elementType.indexOf('Task') !== -1">
+      <el-collapse-item name="Task" v-if="elementType.indexOf('Task') !== -1">
         <template slot="title"><i class="el-icon-s-claim"></i> 原任务配置</template>
         <user-task-panel :id="elementId"/>
-      </el-collapse-item>-->
+      </el-collapse-item>
 
       <!--   任务信息     -->
       <el-collapse-item name="myTask" v-if="elementType.indexOf('Task') !== -1">
