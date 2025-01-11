@@ -18,7 +18,7 @@
         <user-task-panel :id="elementId"/>
       </el-collapse-item>
 
-      <!--   任务信息     -->
+      <!--   wdd任务信息     -->
       <el-collapse-item name="myTask" v-if="elementType.indexOf('Task') !== -1">
         <template slot="title"><i class="el-icon-s-claim"></i> yxxxx任务配置</template>
         <MyTaskPanel :id="elementId"/>
@@ -27,7 +27,7 @@
       <!--   表单     -->
       <el-collapse-item name="form" v-if="formVisible">
         <template slot="title"><i class="el-icon-s-order"></i> (原先)表单配置</template>
-        <form-panel :id="elementId"  />
+        <form-panel :id="elementId"/>
       </el-collapse-item>
 
       <!--   wd表单     -->
@@ -54,9 +54,16 @@
 
       <!--   多实例     -->
       <el-collapse-item name="multiInstance" v-if="elementType.indexOf('Task') !== -1">
-        <template slot="title"><i class="el-icon-s-grid"></i> 多实例</template>
+        <template slot="title"><i class="el-icon-s-grid"></i> 原多实例</template>
         <multi-instance :id="elementId"/>
       </el-collapse-item>
+
+      <!--   wd多实例     -->
+      <el-collapse-item name="mymultiInstance" v-if="elementType.indexOf('Task') !== -1">
+        <template slot="title"><i class="el-icon-s-grid"></i> yxxx多实例</template>
+        <MyMultiInstance :id="elementId"/>
+      </el-collapse-item>
+
       <!--   流转条件     -->
       <el-collapse-item name="condition" v-if="conditionVisible">
         <template slot="title"><i class="el-icon-share"></i> 流转条件</template>
@@ -90,12 +97,14 @@ import FlowRole from "@/components/flow/Role/index.vue";
 import FlowExp from "@/components/flow/Expression/index.vue";
 import MyFormPanel from "@/components/MyProcess/panel/myformPanel.vue";
 import MyTaskPanel from "@/components/MyProcess/panel/myTaskPanel.vue";
+import MyMultiInstance from '@/components/MyProcess/panel/mymultiInstance.vue'
 
 export default {
   name: "Designer",
   components: {
     MyTaskPanel,
     MyFormPanel,
+    MyMultiInstance,
     ExecutionListener,
     TaskListener,
     MultiInstance,
