@@ -180,7 +180,6 @@ export default {
     },
     // 用户选中数据 TODO: 后面更改为 点击确认按钮再赋值人员信息
     userSelect(selection) {
-      debugger
       if (selection) {
         this.deleteFlowAttar();
         this.updateCustomElement('dataType', 'fixed');

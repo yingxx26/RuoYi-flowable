@@ -106,7 +106,6 @@ export default {
   methods: {
     // 方法区
     getElementLoop(businessObject) {
-      debugger
       if (!businessObject.loopCharacteristics) {
         this.loopCharacteristics = "Null";
         this.loopInstanceForm = {};

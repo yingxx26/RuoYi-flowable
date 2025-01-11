@@ -248,7 +248,6 @@ export default {
 
     // 设计器右侧表单数据回显
     checkValuesEcho(formData) {
-      debugger
       if (StrUtil.isNotBlank(formData.expId)) {
         this.getExpList(formData.expId, formData.userType);
       } else {
@@ -271,7 +270,6 @@ export default {
     // 获取人员信息
     getUserList(val, key) {
       if (StrUtil.isNotBlank(val)) {
-        debugger
         console.log("yxx",this.modelerStore)
         const newArr = this.modelerStore.userList?.filter(i => val.split(',').includes(i.userId.toString()))
         /*const newArr = [{

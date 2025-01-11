@@ -224,7 +224,6 @@ export default {
       }
       // 流程节点信息上取值
       for (let key in this.bpmnFormData) {
-        debugger
         const value = this.modelerStore.element?.businessObject[key] || this.bpmnFormData[key];
         this.$set(this.bpmnFormData, key, value);
       }
@@ -265,7 +264,6 @@ export default {
 
     // 设计器右侧表单数据回显
     checkValuesEcho(formData) {
-      debugger
       if (StrUtil.isNotBlank(formData.expId)) {
         this.getExpList(formData.expId, formData.userType);
       } else {
@@ -288,7 +286,6 @@ export default {
     // 获取人员信息
     getUserList(val, key) {
       if (StrUtil.isNotBlank(val)) {
-        debugger
         const newArr = this.modelerStore.userList?.filter(i => (val+"").split(',').includes(i.userId.toString()))
         /*const newArr = [{
              assignee: "2",

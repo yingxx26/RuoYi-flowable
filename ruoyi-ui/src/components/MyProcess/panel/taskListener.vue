@@ -341,6 +341,7 @@ export default {
 
     // 打开 监听器详情 侧边栏
     openListenerForm(listener, index) {
+      debugger
       if (listener) {
         this.listenerForm = this.initListenerForm(listener);
         this.editingListenerIndex = index;

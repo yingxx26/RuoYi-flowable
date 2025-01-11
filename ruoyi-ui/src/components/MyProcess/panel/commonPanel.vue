@@ -74,7 +74,6 @@ export default {
   },
   methods: {
     resetTaskForm() {
-      debugger
       this.bpmnFormData = JSON.parse(JSON.stringify(this.modelerStore.element.businessObject));
     },
     updateElementTask(key) {
