@@ -33,7 +33,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:dept:add']"
+          v-hasPermi="['system:dept:addx']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -43,6 +43,7 @@
           icon="el-icon-sort"
           size="mini"
           @click="toggleExpandAll"
+          v-hasPermiYxx="['system:dept:addx']"
         >展开/折叠</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
