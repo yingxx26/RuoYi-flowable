@@ -263,7 +263,7 @@ public class FlowableUtils {
                 hasSequenceFlow.add(sequenceFlow.getId());
                 // 新增经过的路线
                 passRoads.add(sequenceFlow.getSourceFlowElement().getId());
-                // 如果此点为目标点，确定经过的路线为脏线路，添加点到脏线路中，然后找下个连线
+                //todo（关键） 如果此点为目标点，确定经过的路线为脏线路，添加点到脏线路中，然后找下个连线
                 if (targets.contains(sequenceFlow.getSourceFlowElement().getId())) {
                     dirtyRoads.addAll(passRoads);
                     continue;
@@ -278,7 +278,7 @@ public class FlowableUtils {
                         continue;
                     }
                 }
-                // 继续迭代
+                //todo（关键） 继续迭代
                 dirtyRoads = iteratorFindDirtyRoads(sequenceFlow.getSourceFlowElement(), passRoads, hasSequenceFlow, targets, dirtyRoads);
             }
         }
@@ -517,6 +517,7 @@ public class FlowableUtils {
                     dirtyPoint = stack.peek().getDeleteReason().replace("Change parent activity to ", "");
                 }
                 FlowElement dirtyTask = null;
+                //todo（关键）
                 // 获取变更节点的对应的入口处连线
                 // 如果是网关并行回退情况，会变成两条脏数据路线，效果一样
                 for (FlowElement flowElement : allElements) {
@@ -532,7 +533,7 @@ public class FlowableUtils {
                 // 是全新的需要添加的脏线路
                 boolean isNewDirtyData = true;
                 for (int i = 0; i < dirtyDataLineList.size(); i++) {
-                    // 如果发现他的上个节点在脏线路内，说明这个点可能是并行的节点，或者连续驳回
+                    //todo（关键） 如果发现他的上个节点在脏线路内，说明这个点可能是并行的节点，或者连续驳回
                     // 这时，都以之前的脏线路节点为标准，只需合并脏线路即可，也就是路线补全
                     if (dirtyDataLineList.get(i).contains(userTaskKey.toString())) {
                         isNewDirtyData = false;

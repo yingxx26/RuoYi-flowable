@@ -968,6 +968,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         }
         // Step 2. 获取当前流程所有流程变量(网关节点时需要校验表达式)
         Map<String, Object> variables = taskService.getVariables(task.getId());
+        //todo(关键)
         List<UserTask> nextUserTask = FindNextNodeUtil.getNextUserTasks(repositoryService, task, variables);
         if (CollectionUtils.isEmpty(nextUserTask)) {
             return AjaxResult.success("流程已完结!", null);
