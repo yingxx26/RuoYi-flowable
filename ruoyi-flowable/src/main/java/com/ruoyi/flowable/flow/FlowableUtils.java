@@ -3,6 +3,7 @@ package com.ruoyi.flowable.flow;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.bpmn.model.*;
 import org.flowable.engine.RepositoryService;
+import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.impl.bpmn.behavior.ParallelMultiInstanceBehavior;
 import org.flowable.engine.impl.bpmn.behavior.SequentialMultiInstanceBehavior;
 import org.flowable.engine.repository.ProcessDefinition;
@@ -113,6 +114,7 @@ public class FlowableUtils {
                 hasSequenceFlow.add(sequenceFlow.getId());
                 // 源头类型为用户节点，则userTaskList新增父级节点
                 if (sequenceFlow.getSourceFlowElement() instanceof UserTask) {
+                   //如果是userTask，那么第一次就找到了
                     userTaskList.add((UserTask) sequenceFlow.getSourceFlowElement());
                     continue;
                 }
@@ -262,10 +264,11 @@ public class FlowableUtils {
                 // 添加已经走过的连线
                 hasSequenceFlow.add(sequenceFlow.getId());
                 // 新增经过的路线
+                passRoads.add(sequenceFlow.getId());
                 passRoads.add(sequenceFlow.getSourceFlowElement().getId());
                 //todo（关键） 如果此点为目标点，确定经过的路线为脏线路，添加点到脏线路中，然后找下个连线
                 if (targets.contains(sequenceFlow.getSourceFlowElement().getId())) {
-                    dirtyRoads.addAll(passRoads);
+                   //找到为止
                     continue;
                 }
                 // 如果该节点为开始节点，且存在上级子节点，则顺着上级子节点继续迭代
@@ -281,6 +284,7 @@ public class FlowableUtils {
                 //todo（关键） 继续迭代
                 dirtyRoads = iteratorFindDirtyRoads(sequenceFlow.getSourceFlowElement(), passRoads, hasSequenceFlow, targets, dirtyRoads);
             }
+            dirtyRoads.addAll(passRoads);
         }
         return dirtyRoads;
     }
@@ -700,4 +704,219 @@ public class FlowableUtils {
         }
     }
 
+
+    /**   全部执行过的节点 -》过滤掉驳回的路线（当前到有reson的节点）
+     * 历史节点数据清洗，清洗掉又回滚导致的脏数据
+     *
+     * @param allElements              全部节点信息
+     * @param historicActivityInstanceList 历史任务实例信息，数据采用开始时间升序
+     * @return
+     */
+    public static List<String> historicTaskInstanceClean_yxx(Collection<FlowElement> allElements, List<HistoricActivityInstance> historicActivityInstanceList) {
+        // 会签节点收集
+        List<String> multiTask = new ArrayList<>();
+        allElements.forEach(flowElement -> {
+            if (flowElement instanceof UserTask) {
+                // 如果该节点的行为为会签行为，说明该节点为会签节点
+                if (((UserTask) flowElement).getBehavior() instanceof ParallelMultiInstanceBehavior || ((UserTask) flowElement).getBehavior() instanceof SequentialMultiInstanceBehavior) {
+                    multiTask.add(flowElement.getId());
+                }
+            }
+        });
+        // 循环放入栈，栈 LIFO：后进先出
+        Stack<HistoricActivityInstance> stack = new Stack<>();
+        historicActivityInstanceList.forEach(stack::push);
+        // 清洗后的历史任务实例
+        List<String> lastHistoricTaskInstanceList = new ArrayList<>();
+        // 网关存在可能只走了部分分支情况，且还存在跳转废弃数据以及其他分支数据的干扰，因此需要对历史节点数据进行清洗
+        // 临时用户任务 key
+        StringBuilder userTaskKey = null;
+        // 临时被删掉的任务 key，存在并行情况
+        List<String> deleteKeyList = new ArrayList<>();
+        // 临时脏数据线路
+        List<Set<String>> dirtyDataLineList = new ArrayList<>();
+        // 由某个点跳到会签点,此时出现多个会签实例对应 1 个跳转情况，需要把这些连续脏数据都找到
+        // 会签特殊处理下标
+        int multiIndex = -1;
+        // 会签特殊处理 key
+        StringBuilder multiKey = null;
+        // 会签特殊处理操作标识
+        boolean multiOpera = false;
+        while (!stack.empty()) {
+            // 从这里开始 userTaskKey 都还是上个栈的 key
+            // 是否是脏数据线路上的点
+            final boolean[] isDirtyData = {false};
+            for (Set<String> oldDirtyDataLine : dirtyDataLineList) {
+                if (oldDirtyDataLine.contains(stack.peek().getActivityId())) {
+                    isDirtyData[0] = true;
+                }
+            }
+            // 删除原因不为空，说明从这条数据开始回跳或者回退的
+            // MI_END：会签完成后，其他未签到节点的删除原因，不在处理范围内
+            if (stack.peek().getDeleteReason() != null && !"MI_END".equals(stack.peek().getDeleteReason())) {
+                // 可以理解为脏线路起点
+                String dirtyPoint = "";
+                if (stack.peek().getDeleteReason().contains("Change activity to ")) {
+                    dirtyPoint = stack.peek().getDeleteReason().replace("Change activity to ", "");
+                }
+                // 会签回退删除原因有点不同
+                if (stack.peek().getDeleteReason().contains("Change parent activity to ")) {
+                    dirtyPoint = stack.peek().getDeleteReason().replace("Change parent activity to ", "");
+                }
+                FlowElement dirtyTask = null;
+                //todo（关键）
+                // 获取变更节点的对应的入口处连线
+                // 如果是网关并行回退情况，会变成两条脏数据路线，效果一样
+                for (FlowElement flowElement : allElements) {
+                    if (flowElement.getId().equals(stack.peek().getActivityId())) {
+                        dirtyTask = flowElement;
+                    }
+                }
+                // 获取脏数据线路
+                Set<String> dirtyDataLine = FlowableUtils.iteratorFindDirtyRoads(dirtyTask, null, null, Arrays.asList(dirtyPoint.split(",")), null);
+                // 自己本身也是脏线路上的点，加进去
+                dirtyDataLine.add(stack.peek().getActivityId());
+                log.info(stack.peek().getActivityId() + "点脏路线集合：" + dirtyDataLine);
+                // 是全新的需要添加的脏线路
+                boolean isNewDirtyData = true;
+                for (int i = 0; i < dirtyDataLineList.size(); i++) {
+                    //todo（关键） 如果发现他的上个节点在脏线路内，说明这个点可能是并行的节点，或者连续驳回
+                    // 这时，都以之前的脏线路节点为标准，只需合并脏线路即可，也就是路线补全
+                    if (dirtyDataLineList.get(i).contains(userTaskKey.toString())) {
+                        isNewDirtyData = false;
+                        dirtyDataLineList.get(i).addAll(dirtyDataLine);
+                    }
+                }
+                // 已确定时全新的脏线路
+                if (isNewDirtyData) {
+                    // deleteKey 单一路线驳回到并行，这种同时生成多个新实例记录情况，这时 deleteKey 其实是由多个值组成
+                    // 按照逻辑，回退后立刻生成的实例记录就是回退的记录
+                    // 至于驳回所生成的 Key，直接从删除原因中获取，因为存在驳回到并行的情况
+                    deleteKeyList.add(dirtyPoint + ",");
+                    dirtyDataLineList.add(dirtyDataLine);
+                }
+                // 添加后，现在这个点变成脏线路上的点了
+                isDirtyData[0] = true;
+            }
+            // 如果不是脏线路上的点，说明是有效数据，添加历史实例 Key
+            if (!isDirtyData[0]) {
+                lastHistoricTaskInstanceList.add(stack.peek().getActivityId());
+            }
+            // 校验脏线路是否结束
+            for (int i = 0; i < deleteKeyList.size(); i++) {
+                // 如果发现脏数据属于会签，记录下下标与对应 Key，以备后续比对，会签脏数据范畴开始
+                if (multiKey == null && multiTask.contains(stack.peek().getActivityId())
+                        && deleteKeyList.get(i).contains(stack.peek().getActivityId())) {
+                    multiIndex = i;
+                    multiKey = new StringBuilder(stack.peek().getActivityId());
+                }
+                // 会签脏数据处理，节点退回会签清空
+                // 如果在会签脏数据范畴中发现 Key改变，说明会签脏数据在上个节点就结束了，可以把会签脏数据删掉
+                if (multiKey != null && !multiKey.toString().equals(stack.peek().getActivityId())) {
+                    deleteKeyList.set(multiIndex, deleteKeyList.get(multiIndex).replace(stack.peek().getActivityId() + ",", ""));
+                    multiKey = null;
+                    // 结束进行下校验删除
+                    multiOpera = true;
+                }
+                // 其他脏数据处理
+                // 发现该路线最后一条脏数据，说明这条脏数据线路处理完了，删除脏数据信息
+                // 脏数据产生的新实例中是否包含这条数据
+                if (multiKey == null && deleteKeyList.get(i).contains(stack.peek().getActivityId())) {
+                    // 删除匹配到的部分
+                    deleteKeyList.set(i, deleteKeyList.get(i).replace(stack.peek().getActivityId() + ",", ""));
+                }
+                // 如果每组中的元素都以匹配过，说明脏数据结束
+                if ("".equals(deleteKeyList.get(i))) {
+                    // 同时删除脏数据
+                    deleteKeyList.remove(i);
+                    dirtyDataLineList.remove(i);
+                    break;
+                }
+            }
+            // 会签数据处理需要在循环外处理，否则可能导致溢出
+            // 会签的数据肯定是之前放进去的所以理论上不会溢出，但还是校验下
+            if (multiOpera && deleteKeyList.size() > multiIndex && "".equals(deleteKeyList.get(multiIndex))) {
+                // 同时删除脏数据
+                deleteKeyList.remove(multiIndex);
+                dirtyDataLineList.remove(multiIndex);
+                multiIndex = -1;
+                multiOpera = false;
+            }
+            // pop() 方法与 peek() 方法不同，在返回值的同时，会把值从栈中移除
+            // 保存新的 userTaskKey 在下个循环中使用
+            userTaskKey = new StringBuilder(stack.pop().getActivityId());
+        }
+        log.info("清洗后的历史节点数据：" + lastHistoricTaskInstanceList);
+        return lastHistoricTaskInstanceList;
+    }
+
+    public static List<FlowElement> iteratorFindChildUserTasks_yxx(FlowElement inGateway,FlowElement source,List<String> historicActivityIds, Set<String> hasSequenceFlow, List<FlowElement> targertList) {
+        hasSequenceFlow = hasSequenceFlow == null ? new HashSet<>() : hasSequenceFlow;
+        targertList = targertList == null ? new ArrayList<>() : targertList;
+
+        // 根据类型，获取出口连线
+        List<SequenceFlow> sequenceFlows = getElementOutgoingFlows(inGateway);
+
+        List<SequenceFlow> sequenceSourceFlows =  getElementIncomingFlows(source);
+
+        if (sequenceFlows != null) {
+            // 循环找到目标元素
+            for (SequenceFlow sequenceFlow : sequenceFlows) {
+                // 如果发现连线重复，说明循环了，跳过这个循环
+                if (hasSequenceFlow.contains(sequenceFlow.getId())) {
+                    continue;
+                }
+                // 添加已经走过的连线
+                hasSequenceFlow.add(sequenceFlow.getId());
+                // 找到另外一边的除驳回的历史任务
+                if ((!historicActivityIds.contains((sequenceFlow.getTargetFlowElement()).getId())
+                        && historicActivityIds.contains((sequenceFlow.getSourceFlowElement()).getId()))
+                       || sequenceSourceFlows.contains(sequenceFlow)
+                ) {
+                    continue;
+                }
+                targertList.add( sequenceFlow.getSourceFlowElement());
+                // 继续迭代
+                targertList = iteratorFindChildUserTasks_yxx(sequenceFlow.getTargetFlowElement(),source, historicActivityIds, hasSequenceFlow, targertList);
+            }
+        }
+        return targertList;
+    }
+
+    /**
+     * 迭代获取父级任务节点列表，向前找
+     *
+     * @param source          起始节点
+     * @param hasSequenceFlow 已经经过的连线的 ID，用于判断线路是否重复
+     * @param userTaskList    已找到的用户任务节点
+     * @return
+     */
+    public static List<FlowElement> iteratorFindParentUserTasks_yxx(FlowElement source, Set<String> hasSequenceFlow, List<FlowElement> userTaskList) {
+        userTaskList = userTaskList == null ? new ArrayList<>() : userTaskList;
+        hasSequenceFlow = hasSequenceFlow == null ? new HashSet<>() : hasSequenceFlow;
+
+        // 根据类型，获取入口连线
+        List<SequenceFlow> sequenceFlows = getElementIncomingFlows(source);
+
+        if (sequenceFlows != null) {
+            // 循环找到目标元素
+            for (SequenceFlow sequenceFlow : sequenceFlows) {
+                // 如果发现连线重复，说明循环了，跳过这个循环
+                if (hasSequenceFlow.contains(sequenceFlow.getId())) {
+                    continue;
+                }
+                // 添加已经走过的连线
+                hasSequenceFlow.add(sequenceFlow.getId());
+                // 源头类型为用户节点，则userTaskList新增父级节点
+                if (sequenceFlow.getSourceFlowElement() instanceof FlowElement) {
+                    //如果是userTask，那么第一次就找到了
+                    userTaskList.add( sequenceFlow.getSourceFlowElement());
+                    continue;
+                }
+                // 继续迭代
+                userTaskList = iteratorFindParentUserTasks_yxx(sequenceFlow.getSourceFlowElement(), hasSequenceFlow, userTaskList);
+            }
+        }
+        return userTaskList;
+    }
 }
