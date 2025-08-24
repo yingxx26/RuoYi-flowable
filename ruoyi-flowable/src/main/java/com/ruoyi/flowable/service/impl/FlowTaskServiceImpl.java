@@ -148,7 +148,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         parentUserTaskList.forEach(item -> parentUserTaskKeyList.add(item.getId()));
         // 获取全部历史节点活动实例，即已经走过的节点历史，数据采用开始时间升序
         List<HistoricTaskInstance> historicTaskInstanceList = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).orderByHistoricTaskInstanceStartTime().asc().list();
-        // 数据清洗，将回滚导致的脏数据清洗掉，返回清洗后的节点列表
+        // 数据清洗，将回滚导致的脏数据清洗掉（多次驳回，审核），（清洗的不是本次的数据，本次还没生成赞数据）
         List<String> lastHistoricTaskInstanceList = FlowableUtils.historicTaskInstanceClean(allElements, historicTaskInstanceList);
         // 此时历史任务实例为倒序，获取最后走的节点
         List<String> targetIds = new ArrayList<>();
@@ -171,7 +171,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
             if (number == 2) {
                 break;
             }
-            // 如果当前历史节点，属于父级的节点，说明最后一次经过了这个点，需要退回这个点（目标节点）
+            // 如果当前历史节点，属于父级的节点，说明最后一次经过了这个点，需要退回这个点
             if (parentUserTaskKeyList.contains(historicTaskInstanceKey)) {
                 targetIds.add(historicTaskInstanceKey);
             }
@@ -206,6 +206,49 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         }));
         // 设置驳回意见
         currentTaskIds.forEach(item -> taskService.addComment(item, task.getProcessInstanceId(), FlowComment.REJECT.getType(), flowTaskVo.getComment()));
+
+        //yxx解决并行驳回的多余任务问题-----------------------------
+        // 获取已经完成的节点
+        List<HistoricActivityInstance> historicActivityInstanceList = historyService.createHistoricActivityInstanceQuery()
+                .processInstanceId(task.getProcessInstanceId())
+                .finished().orderByHistoricActivityInstanceStartTime().asc()
+                .list();
+
+        // 数据清洗，将回滚导致的脏数据清洗掉（多次驳回，审核）
+        List<String> historicActivityIds = FlowableUtils.historicTaskInstanceClean_yxx(allElements, historicActivityInstanceList);
+        //1如果驳回前节点是parallelGateway，
+        Boolean is1=false;
+        Gateway inGateway=null;
+        //获取原节点的父节点
+        List<FlowElement> flowElements1 = FlowableUtils.iteratorFindParentUserTasks_yxx(source, null, null);
+        if (flowElements1 != null) {
+            for (FlowElement flowElement : flowElements1) {
+                if (flowElement instanceof Gateway) {
+                    inGateway = (Gateway) flowElement;
+                    is1 = true;
+                }
+            }
+        }
+        //2 遍历inGateway的子节点，必须在historicActivityIds中 ，直到最后一个
+        List<String> currentIdsOthers=new ArrayList<String>();
+        if(is1){
+            List<FlowElement> flowElements = FlowableUtils.iteratorFindChildUserTasks_yxx(inGateway,source, historicActivityIds, null, null);
+            flowElements.forEach(item ->{
+                        if(item instanceof UserTask){
+                            currentIdsOthers.add(((UserTask)item).getId());
+                        }
+                    }
+            );
+        }
+
+        /*List<HistoricTaskInstance> collect = historicTaskInstanceList.stream().filter(all -> historicActivityIds.contains(all.getTaskDefinitionKey())).collect(Collectors.toList());
+        List<HistoricTaskInstance> collect1 = collect.stream().filter(all -> currentIdsOthers.contains(all.getTaskDefinitionKey())).collect(Collectors.toList());
+        List<String> collect2 = collect1.stream().map(HistoricTaskInstance::getId).collect(Collectors.toList());
+        //删除活动
+        for(String c: collect2){
+           sql 删除
+        }
+        */
         //targetIds 是前面，currentIds是后面
         try {
             // 如果父级任务多于 1 个，说明当前节点不是并行节点，原因为不考虑多对多情况
@@ -968,6 +1011,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         }
         // Step 2. 获取当前流程所有流程变量(网关节点时需要校验表达式)
         Map<String, Object> variables = taskService.getVariables(task.getId());
+        //todo(关键)
         List<UserTask> nextUserTask = FindNextNodeUtil.getNextUserTasks(repositoryService, task, variables);
         if (CollectionUtils.isEmpty(nextUserTask)) {
             return AjaxResult.success("流程已完结!", null);
@@ -1053,7 +1097,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
      * @param procInsId
      * @return
      */
-    @Override
+  /*  @Override
     public AjaxResult flowXmlAndNode(String procInsId, String deployId) {
         try {
             List<FlowViewerDto> flowViewerList = new ArrayList<>();
@@ -1073,6 +1117,79 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
                     flowViewerList.add(flowViewerDto);
                 }
             });
+
+
+            // 获取代办节点
+            List<HistoricActivityInstance> listUnFinished = historyService.createHistoricActivityInstanceQuery()
+                    .processInstanceId(procInsId)
+                    .unfinished()
+                    .list();
+
+            // 保存需要代办的节点编号
+            listUnFinished.forEach(s -> {
+                // 删除已退回节点
+                flowViewerList.removeIf(task -> task.getKey().equals(s.getActivityId()));
+                FlowViewerDto flowViewerDto = new FlowViewerDto();
+                flowViewerDto.setKey(s.getActivityId());
+                flowViewerDto.setCompleted(false);
+                flowViewerList.add(flowViewerDto);
+            });
+            Map<String, Object> result = new HashMap();
+            // xmlData 数据
+            ProcessDefinition definition = repositoryService.createProcessDefinitionQuery().deploymentId(deployId).singleResult();
+            InputStream inputStream = repositoryService.getResourceAsStream(definition.getDeploymentId(), definition.getResourceName());
+            String xmlData = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            result.put("nodeData", flowViewerList);
+            result.put("xmlData", xmlData);
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error("高亮历史任务失败");
+        }
+    }*/
+
+
+    /**
+     * 流程节点信息
+     *
+     * @param procInsId
+     * @return
+     */
+    @Override
+    public AjaxResult flowXmlAndNode(String procInsId, String deployId) {
+        try {
+
+            // 获取流程定义信息
+            ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deployId).singleResult();
+            // 获取所有节点信息
+            Process process = repositoryService.getBpmnModel(processDefinition.getId()).getProcesses().get(0);
+            // 获取全部节点列表，包含子节点
+            Collection<FlowElement> allElements = FlowableUtils.getAllElements(process.getFlowElements(), null);
+
+            // 获取已经完成的节点
+            List<HistoricActivityInstance> historicActivityInstanceList = historyService.createHistoricActivityInstanceQuery()
+                    .processInstanceId(procInsId)
+                    .finished().orderByHistoricActivityInstanceStartTime().asc()
+                    .list();
+
+            // 数据清洗，将回滚导致的脏数据清洗掉（多次驳回，审核）
+            List<String> historicActivityIds = FlowableUtils.historicTaskInstanceClean_yxx(allElements, historicActivityInstanceList);
+
+
+            List<FlowViewerDto> flowViewerList = new ArrayList<>();
+
+
+            // 保存已经完成的流程节点编号
+            historicActivityIds.forEach(s -> {
+                FlowViewerDto flowViewerDto = new FlowViewerDto();
+                flowViewerDto.setKey(s);
+                flowViewerDto.setCompleted(true);
+                flowViewerList.add(flowViewerDto);
+                // 退回节点不进行展示
+                /*if (StringUtils.isBlank(s.getDeleteReason())) {
+                    flowViewerList.add(flowViewerDto);
+                }*/
+            });
+
 
             // 获取代办节点
             List<HistoricActivityInstance> listUnFinished = historyService.createHistoricActivityInstanceQuery()

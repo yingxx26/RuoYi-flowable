@@ -118,7 +118,7 @@ public class FindNextNodeUtil {
 
                     //查询下一节点的信息
                     FlowElement nextFlowElement = getFlowElementById(nextFlowElementID, flowElements);
-                    //调用流程
+                    //调用子流程
                     if (nextFlowElement instanceof CallActivity) {
                         CallActivity ca = (CallActivity) nextFlowElement;
                         if (ca.getLoopCharacteristics() != null) {
