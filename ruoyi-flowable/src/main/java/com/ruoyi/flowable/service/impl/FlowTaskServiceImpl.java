@@ -148,7 +148,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
         parentUserTaskList.forEach(item -> parentUserTaskKeyList.add(item.getId()));
         // 获取全部历史节点活动实例，即已经走过的节点历史，数据采用开始时间升序
         List<HistoricTaskInstance> historicTaskInstanceList = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).orderByHistoricTaskInstanceStartTime().asc().list();
-        // 数据清洗，将回滚导致的脏数据清洗掉
+        // 数据清洗，将回滚导致的脏数据清洗掉，返回清洗后的节点列表
         List<String> lastHistoricTaskInstanceList = FlowableUtils.historicTaskInstanceClean(allElements, historicTaskInstanceList);
         // 此时历史任务实例为倒序，获取最后走的节点
         List<String> targetIds = new ArrayList<>();
@@ -171,7 +171,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
             if (number == 2) {
                 break;
             }
-            // 如果当前历史节点，属于父级的节点，说明最后一次经过了这个点，需要退回这个点
+            // 如果当前历史节点，属于父级的节点，说明最后一次经过了这个点，需要退回这个点（目标节点）
             if (parentUserTaskKeyList.contains(historicTaskInstanceKey)) {
                 targetIds.add(historicTaskInstanceKey);
             }
