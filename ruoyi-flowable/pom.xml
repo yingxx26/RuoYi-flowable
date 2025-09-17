@@ -81,7 +81,17 @@
 			<artifactId>aviator</artifactId>
 			<version>5.3.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<version>2.5.15</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>5.3.27</version>
+		</dependency>
 	</dependencies>
 
 <!--	<build>-->

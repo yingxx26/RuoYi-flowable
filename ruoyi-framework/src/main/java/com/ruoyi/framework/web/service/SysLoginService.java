@@ -1,7 +1,7 @@
 package com.ruoyi.framework.web.service;
 
-import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +40,7 @@ public class SysLoginService
     @Autowired
     private TokenService tokenService;
 
-    @Resource
+    @Autowired(required=false)
     private AuthenticationManager authenticationManager;
 
     @Autowired

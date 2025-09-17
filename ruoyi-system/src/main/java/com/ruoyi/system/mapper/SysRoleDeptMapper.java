@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysRoleDept;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 角色与部门关联表 数据层

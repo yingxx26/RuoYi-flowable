@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysListener;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 流程监听Mapper接口

@@ -23,8 +23,8 @@ import com.ruoyi.framework.interceptor.RepeatSubmitInterceptor;
 @Configuration
 public class ResourcesConfig implements WebMvcConfigurer
 {
-    @Autowired
-    private RepeatSubmitInterceptor repeatSubmitInterceptor;
+    /*@Autowired
+    private RepeatSubmitInterceptor repeatSubmitInterceptor;*/
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry)
@@ -42,11 +42,11 @@ public class ResourcesConfig implements WebMvcConfigurer
     /**
      * 自定义拦截规则
      */
-    @Override
+    /*@Override
     public void addInterceptors(InterceptorRegistry registry)
     {
         registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
-    }
+    }*/
 
     /**
      * 跨域配置

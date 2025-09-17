@@ -22,10 +22,10 @@ import com.ruoyi.framework.interceptor.RepeatSubmitInterceptor;
  * 
  * @author ruoyi
  */
-@Component
-public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
+//@Component
+public class SameUrlDataInterceptor /*extends RepeatSubmitInterceptor*/
 {
-    public final String REPEAT_PARAMS = "repeatParams";
+   /* public final String REPEAT_PARAMS = "repeatParams";
 
     public final String REPEAT_TIME = "repeatTime";
 
@@ -84,9 +84,9 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
         return false;
     }
 
-    /**
+    *//**
      * 判断参数是否相同
-     */
+     *//*
     private boolean compareParams(Map<String, Object> nowMap, Map<String, Object> preMap)
     {
         String nowParams = (String) nowMap.get(REPEAT_PARAMS);
@@ -94,9 +94,9 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
         return nowParams.equals(preParams);
     }
 
-    /**
+    *//**
      * 判断两次间隔时间
-     */
+     *//*
     private boolean compareTime(Map<String, Object> nowMap, Map<String, Object> preMap, int interval)
     {
         long time1 = (Long) nowMap.get(REPEAT_TIME);
@@ -106,5 +106,5 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
             return true;
         }
         return false;
-    }
+    }*/
 }

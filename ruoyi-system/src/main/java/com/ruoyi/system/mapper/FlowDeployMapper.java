@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import com.ruoyi.system.domain.FlowProcDefDto;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 

@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.common.core.domain.entity.SysDictType;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 字典表 数据层

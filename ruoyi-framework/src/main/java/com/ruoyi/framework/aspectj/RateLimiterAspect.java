@@ -32,19 +32,19 @@ public class RateLimiterAspect
 
     private RedisTemplate<Object, Object> redisTemplate;
 
-    private RedisScript<Long> limitScript;
-
+    /*private RedisScript<Long> limitScript;
+*/
     @Autowired
     public void setRedisTemplate1(RedisTemplate<Object, Object> redisTemplate)
     {
         this.redisTemplate = redisTemplate;
     }
 
-    @Autowired
+    /*@Autowired
     public void setLimitScript(RedisScript<Long> limitScript)
     {
         this.limitScript = limitScript;
-    }
+    }*/
 
     @Before("@annotation(rateLimiter)")
     public void doBefore(JoinPoint point, RateLimiter rateLimiter) throws Throwable
@@ -56,12 +56,12 @@ public class RateLimiterAspect
         List<Object> keys = Collections.singletonList(combineKey);
         try
         {
-            Long number = redisTemplate.execute(limitScript, keys, count, time);
+          /*  Long number = redisTemplate.execute(limitScript, keys, count, time);
             if (StringUtils.isNull(number) || number.intValue() > count)
             {
                 throw new ServiceException("访问过于频繁，请稍候再试");
             }
-            log.info("限制请求'{}',当前请求'{}',缓存key'{}'", count, number.intValue(), combineKey);
+            log.info("限制请求'{}',当前请求'{}',缓存key'{}'", count, number.intValue(), combineKey);*/
         }
         catch (ServiceException e)
         {

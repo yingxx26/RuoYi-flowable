@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysExpression;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 流程达式Mapper接口

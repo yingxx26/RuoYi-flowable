@@ -1,0 +1,3 @@
+如果spi打成jar包给第三方用,有些注释要(required=false），比如
+@Autowired(required=false)
+private AuthenticationManager authenticationManager;

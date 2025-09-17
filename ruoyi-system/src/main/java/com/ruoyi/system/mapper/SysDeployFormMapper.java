@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import com.ruoyi.system.domain.SysDeployForm;
 import com.ruoyi.system.domain.SysForm;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
