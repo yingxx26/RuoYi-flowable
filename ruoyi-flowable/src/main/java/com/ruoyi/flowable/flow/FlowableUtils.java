@@ -1,12 +1,16 @@
 package com.ruoyi.flowable.flow;
 
+import com.sun.jna.WString;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.Process;
 import org.flowable.engine.RepositoryService;
+import org.flowable.engine.TaskService;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.impl.bpmn.behavior.ParallelMultiInstanceBehavior;
 import org.flowable.engine.impl.bpmn.behavior.SequentialMultiInstanceBehavior;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.task.api.TaskQuery;
 import org.flowable.task.api.history.HistoricTaskInstance;
 
 import java.util.*;
@@ -918,5 +922,34 @@ public class FlowableUtils {
             }
         }
         return userTaskList;
+    }
+
+    /**
+     * 判断是否会签
+     * @param bpmnModel
+     * @return
+     */
+    public static Boolean judgeHuiQian( BpmnModel bpmnModel ) {
+        /*
+        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(task.getProcessDefinitionId()).singleResult();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
+        * */
+        String key = "Activity_1sqftwy";
+        FlowElement flowElement = bpmnModel.getFlowElement(key);
+        if (((UserTask) flowElement).getBehavior() instanceof ParallelMultiInstanceBehavior || ((UserTask) flowElement).getBehavior() instanceof SequentialMultiInstanceBehavior) {
+          return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断会签是否结束
+     * @param taskDefinitionId
+     * @return
+     */
+    public static Boolean judgeHuiQianIsOver(TaskService taskService, String taskDefinitionId) {
+        TaskQuery taskQuery = taskService.createTaskQuery().taskDefinitionId(taskDefinitionId);
+        Long count = taskQuery.count();
+        return count > 0? false:true;
     }
 }

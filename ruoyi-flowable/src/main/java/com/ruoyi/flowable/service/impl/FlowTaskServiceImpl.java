@@ -41,6 +41,7 @@ import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.task.Comment;
+import org.flowable.identitylink.api.IdentityLink;
 import org.flowable.identitylink.api.history.HistoricIdentityLink;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.task.api.DelegationState;
@@ -91,6 +92,24 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
     @Override
     public AjaxResult complete(FlowTaskVo taskVo) {
         Task task = taskService.createTaskQuery().taskId(taskVo.getTaskId()).singleResult();
+
+
+        if (task != null) {
+            List<IdentityLink> identityLinks = taskService.getIdentityLinksForTask(task.getId());
+            for (IdentityLink identityLink : identityLinks) {
+                if ("candidate".equals(identityLink.getType())) {
+                    System.out.println("Candidate User: " + identityLink.getUserId());
+                    System.out.println("Candidate User: " + identityLink.getGroupId());
+                } else if ("assignee".equals(identityLink.getType())) {
+                    System.out.println("Assignee: " + identityLink.getUserId());
+                    System.out.println("Assignee: " + identityLink.getGroupId());
+                } else if ("participant".equals(identityLink.getType())) {
+                    System.out.println("Participant: " + identityLink.getUserId());
+                    System.out.println("Participant: " + identityLink.getGroupId());
+                }
+            }
+        }
+
         if (Objects.isNull(task)) {
             return AjaxResult.error("任务不存在");
         }
